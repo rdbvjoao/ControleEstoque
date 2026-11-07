@@ -21,6 +21,9 @@ namespace Estoque.Dominio
         }
         public void Entrada(int quantidade) 
         {
+            if(quantidade <=0)
+                throw new QuantidadeInvalidaException(quantidade);
+
             Total += quantidade;
             Disponivel += quantidade;
         }
