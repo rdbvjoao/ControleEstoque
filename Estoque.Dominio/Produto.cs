@@ -27,5 +27,16 @@ namespace Estoque.Dominio
             Total += quantidade;
             Disponivel += quantidade;
         }
+
+
+        public void Saida(int quantidade)
+        {
+            if (quantidade > Disponivel)
+                throw new EstoqueInsuficienteException(quantidade, Disponivel);
+
+            Total -= quantidade;
+            Disponivel -= quantidade;
+        }
+
     }
 }
