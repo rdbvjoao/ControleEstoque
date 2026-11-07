@@ -8,7 +8,7 @@ namespace Estoque.Dominio
 {
     public class Produto
     {
-        private readonly object _lock = new ();
+        private readonly object _lock = new();
         private readonly Dictionary<Guid, Reserva> _reservas = new(); //guarda pares de chave e valor no dicionário de reservas
         private readonly Dictionary<Guid, Bloqueio> _bloqueios = new(); //guarda pares de chave e valor no dicionário bloqueios
         public string Id { get; }
@@ -25,19 +25,19 @@ namespace Estoque.Dominio
             Id = id;
         }
 
-        private static void ValidarQuantidade(int quantidade) 
+        private static void ValidarQuantidade(int quantidade)
         {
-            if(quantidade <=0)
+            if (quantidade <= 0)
                 throw new QuantidadeInvalidaException(quantidade);
         }
 
-        private void ValidarDisponivel(int quantidade) 
+        private void ValidarDisponivel(int quantidade)
         {
-            if(quantidade> Disponivel)
+            if (quantidade > Disponivel)
                 throw new EstoqueInsuficienteException(quantidade, Disponivel);
         }
 
-        public void Entrada(int quantidade) 
+        public void Entrada(int quantidade)
         {
             lock (_lock)
             {
@@ -51,29 +51,26 @@ namespace Estoque.Dominio
 
         public void Saida(int quantidade)
         {
-            lock (_lock) 
-            { 
+            lock (_lock)
+            {
                 ValidarQuantidade(quantidade);
                 ValidarDisponivel(quantidade);
-
-                    if (quantidade > Disponivel)
-                        throw new EstoqueInsuficienteException(quantidade, Disponivel);
 
                 Total -= quantidade;
                 Disponivel -= quantidade;
             }
         }
 
-        public Reserva Reservar(string pedidoId, int quantidade) 
+        public Reserva Reservar(string pedidoId, int quantidade)
         {
             lock (_lock)
-            { 
-            
+            {
+
                 ValidarQuantidade(quantidade);
                 Validacoes.ExigirTexto(pedidoId, "pedido");
                 ValidarDisponivel(quantidade);
 
-                var reserva =  new Reserva(pedidoId, quantidade);
+                var reserva = new Reserva(pedidoId, quantidade);
                 _reservas.Add(reserva.Id, reserva); //adicionando o id da reserva do pedido no dicionário
 
                 Disponivel -= quantidade;
@@ -84,22 +81,22 @@ namespace Estoque.Dominio
 
         }
 
-        public Reserva ObterReserva(Guid id) 
+        public Reserva ObterReserva(Guid id)
         {
             lock (_lock)
-            { 
-        
-                if(!_reservas.TryGetValue(id, out var reserva)) //procura o id no dicionário
-                throw new ReservaNaoEncontradaException(id);
+            {
+
+                if (!_reservas.TryGetValue(id, out var reserva)) //procura o id no dicionário
+                    throw new ReservaNaoEncontradaException(id);
 
                 return reserva;
             }
         }
 
-        public void LiberarReserva(Guid id) 
+        public void LiberarReserva(Guid id)
         {
-            lock (_lock) 
-            { 
+            lock (_lock)
+            {
                 var reserva = ObterReserva(id);
 
                 _reservas.Remove(id); //removendo a reserva do dicionário
@@ -134,8 +131,8 @@ namespace Estoque.Dominio
         public Bloqueio ObterBloqueio(Guid id)
         {
             lock (_lock)
-            { 
-            
+            {
+
                 if (!_bloqueios.TryGetValue(id, out var bloqueio)) //procura o id no dicionário
                     throw new BloqueioNaoEncontradoException(id);
 
@@ -146,14 +143,14 @@ namespace Estoque.Dominio
 
         public void LiberarBloqueio(Guid id)
         {
-            lock (_lock) 
-            { 
-            
+            lock (_lock)
+            {
+
                 var bloqueio = ObterBloqueio(id);
- 
+
                 _bloqueios.Remove(id); //removendo o bloqueio do dicionário
 
-                Bloqueada -= bloqueio.Quantidade; 
+                Bloqueada -= bloqueio.Quantidade;
                 Disponivel += bloqueio.Quantidade;
             }
         }

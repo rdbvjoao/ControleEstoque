@@ -1,54 +1,60 @@
 ﻿using System.Text;
 using Estoque.Dominio;
 
-    Console.OutputEncoding = Encoding.UTF8;
+Console.OutputEncoding = Encoding.UTF8;
 
-    var servico = new EstoqueService(new ProdutoRepositoryEmMemoria());
+var servico = new EstoqueService(new ProdutoRepositoryEmMemoria());
+var passos = new List<(string Operacao, SituacaoProduto Situacao)>();
+string? erro = null;
 
-    void Mostrar(string titulo)
-    {
-      var serv = servico.Consultar("P1");
+void Registrar(string operacao) =>
+    passos.Add((operacao, servico.Consultar("P1")));
 
-        Console.WriteLine(
-          $"{titulo,-30} Total={serv.Total,4}  Disponivel={serv.Disponivel,4}" +
-          $"  Reservada={serv.Reservada,4}  Bloqueada={serv.Bloqueada,4}");
+servico.Entrada("P1", 100);
+Registrar("Entrada de 100");
 
-    }
+var reserva = servico.Reservar("P1", "PED-1", 30);
+Registrar("Reserva de 30 (PED-1)");
 
-    servico.Entrada("P1", 100);
-    Mostrar("Entrada de 100");
+var bloqueio = servico.Bloquear("P1", 20);
+Registrar("Bloqueio de 20");
 
+servico.Saida("P1", 40);
+Registrar("Saída de 40");
 
-    var reserva = servico.Reservar("P1","PED-1", 30);
-    Mostrar("Reserva de 30 (PED-1)");
+try
+{
+    servico.Reservar("P1", "PED-2", 20);
+}
+catch (EstoqueInsuficienteException ex)
+{
+    erro = ex.Message;
+}
+Registrar("Reserva de 20 (PED-2) recusada");
 
+servico.LiberarReserva("P1", reserva.Id);
+Registrar("Liberação da reserva PED-1");
 
-    var bloqueio = servico.Bloquear("P1", 20);
-    Mostrar("Bloqueio de 20");
+servico.LiberarBloqueio("P1", bloqueio.Id);
+Registrar("Liberação do bloqueio");
 
+var larguraOperacao = Math.Max("Operação".Length, passos.Max(p => p.Operacao.Length));
+const int larguraNumero = 10;
 
-    servico.Saida("P1", 40);
-    Mostrar("Saida de 40");
+string Linha(string operacao, string total, string disponivel, string reservada, string bloqueada) =>
+    $"{operacao.PadRight(larguraOperacao)}  {total.PadLeft(larguraNumero)}  {disponivel.PadLeft(larguraNumero)}  {reservada.PadLeft(larguraNumero)}  {bloqueada.PadLeft(larguraNumero)}";
 
+Console.WriteLine(Linha("Operação", "Total", "Disponível", "Reservada", "Bloqueada"));
+Console.WriteLine(new string('─', larguraOperacao + 4 * (larguraNumero + 2)));
 
-    try
-    {   
-        servico.Reservar("P1", "PED-2", 20);
-    }
-    catch (EstoqueInsuficienteException ex)
-    {
-        Console.WriteLine($"Reserva recusada: {ex.Message}");
-    }
+foreach (var passo in passos)
+{
+    var s = passo.Situacao;
+    Console.WriteLine(Linha(passo.Operacao, s.Total.ToString(), s.Disponivel.ToString(), s.Reservada.ToString(), s.Bloqueada.ToString()));
+}
 
-    Mostrar("Após a reserva ser recusada");
-
-    servico.LiberarReserva("P1", reserva.Id);
-    Mostrar("Liberação da reserva do PED-1");
-
-
-    servico.LiberarBloqueio("P1", bloqueio.Id);
-    Mostrar("Liberaçao do bloqueio");
-
-
-
-
+if (erro is not null)
+{
+    Console.WriteLine();
+    Console.WriteLine($"Reserva recusada: {erro}");
+}
