@@ -44,8 +44,8 @@ namespace Estoque.Dominio
         public Reserva Reservar(string produtoId, string pedidoId, int quantidade) => ObterProduto(produtoId).Reservar(pedidoId, quantidade);
 
 
-        public Bloqueio Bloquear(string produtoId, int quantidade) => ObterProduto(produtoId).Bloquear(quantidade);
-
+        public Bloqueio Bloquear(string produtoId, int quantidade, string? solicitacaoId = null) =>
+            ObterProduto(produtoId).Bloquear(quantidade, solicitacaoId);
 
         public void LiberarReserva(string produtoId, Guid reservaId) => ObterProduto(produtoId).LiberarReserva(reservaId);
 

@@ -11,15 +11,17 @@ namespace Estoque.Dominio
         private readonly object _lock = new ();
         private readonly Dictionary<Guid, Reserva> _reservas = new(); //guarda pares de chave e valor no dicionário de reservas
         private readonly Dictionary<Guid, Bloqueio> _bloqueios = new(); //guarda pares de chave e valor no dicionário bloqueios
-        public string Id { get; set; }
+        public string Id { get; }
         public int Total { get; private set; }
         public int Disponivel { get; private set; }
         public int Reservada { get; private set; }
         public int Bloqueada { get; private set; }
 
 
-        public Produto(string id) 
+        public Produto(string id)
         {
+            Validacoes.ExigirTexto(id, "produto");
+
             Id = id;
         }
 
@@ -108,23 +110,21 @@ namespace Estoque.Dominio
         }
 
 
-        public Bloqueio Bloquear(int quantidade)
+        public Bloqueio Bloquear(int quantidade, string? solicitacaoId = null)
         {
             lock (_lock)
-            { 
-            
+            {
                 ValidarQuantidade(quantidade);
-            
+                if (solicitacaoId is not null)
+                    Validacoes.ExigirTexto(solicitacaoId, "solicitação");
                 ValidarDisponivel(quantidade);
-                
-                var bloqueio = new Bloqueio(quantidade);
-            
+
+                var bloqueio = new Bloqueio(quantidade, solicitacaoId);
                 _bloqueios.Add(bloqueio.Id, bloqueio); //adicionando o id do bloqueio no dicionário
 
                 Disponivel -= quantidade;
-            
                 Bloqueada += quantidade;
-         
+
                 return bloqueio;
             }
         }

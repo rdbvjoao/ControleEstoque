@@ -468,5 +468,64 @@ namespace Estoque.Dominio.Tests
             Assert.Equal(0, produto.Reservada);
         }
 
+        [Fact]
+        public void Bloquear_ComSolicitacao_GuardaSolicitacaoNoBloqueio()
+        {
+            var produto = new Produto("P1");
+            produto.Entrada(100);
+
+            var bloqueio = produto.Bloquear(20, "SOL-1");
+
+            Assert.Equal("SOL-1", bloqueio.SolicitacaoId);
+            Assert.Equal(20, produto.Bloqueada);
+        }
+
+        [Fact]
+        public void Bloquear_SolicitacoesDiferentes_MantemBloqueiosSeparados()
+        {
+            var produto = new Produto("P1");
+            produto.Entrada(100);
+
+            var bloqueio1 = produto.Bloquear(20, "SOL-1");
+            var bloqueio2 = produto.Bloquear(10, "SOL-2");
+
+            Assert.Equal(30, produto.Bloqueada);
+            Assert.Equal("SOL-1", produto.ObterBloqueio(bloqueio1.Id).SolicitacaoId);
+            Assert.Equal("SOL-2", produto.ObterBloqueio(bloqueio2.Id).SolicitacaoId);
+        }
+
+        [Fact]
+        public void Bloquear_SemSolicitacao_ContinuaValido()
+        {
+            var produto = new Produto("P1");
+            produto.Entrada(100);
+
+            var bloqueio = produto.Bloquear(20);
+
+            Assert.Null(bloqueio.SolicitacaoId);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void Bloquear_SolicitacaoEmBranco_LancaErroEMantemEstoque(string solicitacaoId)
+        {
+            var produto = new Produto("P1");
+            produto.Entrada(10);
+
+            Assert.Throws<IdentificadorInvalidoException>(() => produto.Bloquear(5, solicitacaoId));
+
+            Assert.Equal(10, produto.Disponivel);
+            Assert.Equal(0, produto.Bloqueada);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void Construtor_IdInvalido_LancaErro(string? id)
+        {
+            Assert.Throws<IdentificadorInvalidoException>(() => new Produto(id!));
+        }
     }
 }
