@@ -1,0 +1,28 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Estoque.Dominio
+{
+    public class Produto
+    {
+        public string Id { get; set; }
+        public int Total { get; private set; }
+        public int Disponivel { get; private set; }
+        public int Reservada { get; private set; }
+        public int Bloqueada { get; private set; }
+
+
+        public Produto(string id) 
+        {
+            Id = id;
+        }
+        public void Entrada(int quantidade) 
+        {
+            Total += quantidade;
+            Disponivel += quantidade;
+        }
+    }
+}
