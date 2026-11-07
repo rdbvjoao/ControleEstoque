@@ -92,7 +92,6 @@ namespace Estoque.Dominio
         }
 
 
-
         public Bloqueio Bloquear(int quantidade)
         {
             ValidarQuantidade(quantidade);
@@ -108,5 +107,24 @@ namespace Estoque.Dominio
         }
 
 
+
+        public Bloqueio ObterBloqueio(Guid id)
+        {
+            if (!_bloqueios.TryGetValue(id, out var bloqueio)) //procura o id no dicionário
+                throw new BloqueioNaoEncontradoException(id);
+
+            return bloqueio;
+        }
+
+
+        public void LiberarBloqueio(Guid id)
+        {
+            var bloqueio = ObterBloqueio(id);
+
+            _bloqueios.Remove(id); //removendo o bloqueio do dicionário
+
+            Bloqueada -= bloqueio.Quantidade;
+            Disponivel += bloqueio.Quantidade;
+        }
     }
 }

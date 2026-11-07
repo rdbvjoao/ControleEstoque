@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Frameworks;
 using Xunit;
 
 namespace Estoque.Dominio.Tests
@@ -318,6 +319,103 @@ namespace Estoque.Dominio.Tests
             var produto = new Produto("P1");
 
             Assert.Throws<ReservaNaoEncontradaException>(() => produto.ObterReserva(Guid.NewGuid()));
+        }
+
+
+        [Fact]
+        public void LiberarBloqueio_BloqueioExistente_DevolveAoDisponivelEMantemOutros() 
+        {
+            var produto = new Produto("P1");
+
+            produto.Entrada(100);
+
+            var bloqueio1 = produto.Bloquear(20);
+
+            var bloqueio2 = produto.Bloquear(10);
+
+
+            produto.LiberarBloqueio(bloqueio1.Id);
+
+            Assert.Equal(100, produto.Total);
+            Assert.Equal(90, produto.Disponivel);
+            Assert.Equal(0, produto.Reservada);
+            Assert.Equal(10, produto.Bloqueada);
+            Assert.Same(bloqueio2, produto.ObterBloqueio(bloqueio2.Id));
+
+        }
+
+
+        [Fact]
+        public void LiberarBloqueio_IdInexistente_LancaErroEMantemEstoque() 
+        {
+
+            var produto = new Produto("P1");
+            
+            produto.Entrada(100);
+            produto.Bloquear(20);
+
+            Assert.Throws<BloqueioNaoEncontradoException>(() => produto.LiberarBloqueio(Guid.NewGuid()));
+
+            Assert.Equal(80, produto.Disponivel);
+            Assert.Equal(20, produto.Bloqueada);
+
+        }
+
+        [Fact]
+        public void LiberarBloqueio_JaLiberado_LancaErroMantemEstoque()
+        {
+            var produto = new Produto("P1");
+
+            produto.Entrada(100);
+
+            var bloqueio = produto.Bloquear(20);
+
+            produto.LiberarBloqueio(bloqueio.Id);
+
+            Assert.Throws<BloqueioNaoEncontradoException>(() => produto.LiberarBloqueio(bloqueio.Id));
+
+            Assert.Equal(100, produto.Disponivel);
+            Assert.Equal(0, produto.Bloqueada);
+        }
+
+
+        [Fact]
+        public void LiberarBloqueio_IdDeReserva_LancaErroMantemEstoque()
+        {
+            var produto = new Produto("P1");
+
+            produto.Entrada(100);
+
+            var reserva = produto.Reservar("PED-1", 30);
+
+            Assert.Throws<BloqueioNaoEncontradoException>(() => produto.LiberarBloqueio(reserva.Id));
+
+            Assert.Equal(70, produto.Disponivel);
+            Assert.Equal(30, produto.Reservada);
+        }
+
+        [Fact]
+        public void ObterBloqueio_IdExistente_RetornaBloqueio()
+        {
+            var produto = new Produto("P1");
+
+            produto.Entrada(100);
+
+            var bloqueio = produto.Bloquear(20);
+
+            var encontrado = produto.ObterBloqueio(bloqueio.Id);
+
+            Assert.Same(bloqueio, encontrado);
+        }
+
+        [Fact]
+        public void ObterBloqueio_IdInexistente_LancaErro() 
+        {
+
+            var produto = new Produto("P1");
+
+            Assert.Throws<BloqueioNaoEncontradoException>(() => produto.ObterBloqueio(Guid.NewGuid()));
+
         }
 
     }
