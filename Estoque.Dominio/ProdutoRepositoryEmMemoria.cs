@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace Estoque.Dominio
 {
     public class ProdutoRepositoryEmMemoria : IProdutoRepository
     {
-        private readonly Dictionary<string, Produto> _produtos = new Dictionary<string, Produto>();
+        private readonly ConcurrentDictionary<string, Produto> _produtos = new();
 
         public Produto? Obter(string produtoId) => _produtos.TryGetValue(produtoId, out var produto) ? produto : null;
 

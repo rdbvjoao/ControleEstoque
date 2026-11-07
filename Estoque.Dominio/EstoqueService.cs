@@ -8,27 +8,32 @@ namespace Estoque.Dominio
 {
     public class EstoqueService
     {
-        private readonly IProdutoRepository _repositorio; 
-
+        private readonly IProdutoRepository _repositorio;
+        private readonly object _lockCriacao = new();
         public EstoqueService(IProdutoRepository repositorio)
         {
             _repositorio = repositorio;
         }
 
-        public void Entrada(string produtoId, int quantidade) 
+
+        public void Entrada(string produtoId, int quantidade)
         {
-        
-            var produto = _repositorio.Obter(produtoId);
-
-            if (produto is null) 
+            lock (_lockCriacao)
             {
-                produto = new Produto(produtoId);
-                produto.Entrada(quantidade);
-                _repositorio.Adicionar(produto);
-                return;
-            }
+                var produto = _repositorio.Obter(produtoId);
 
-            produto.Entrada(quantidade);
+                if (produto is null)
+                {
+                    produto = new Produto(produtoId);
+                    produto.Entrada(quantidade);
+
+                    _repositorio.Adicionar(produto);
+
+                    return;
+                }
+
+                produto.Entrada(quantidade);
+            }
         }
 
         public void Saida(string produtoId, int quantidade) => ObterProduto(produtoId).Saida(quantidade);
@@ -52,13 +57,7 @@ namespace Estoque.Dominio
         public Bloqueio ObterBloqueio(string produtoId, Guid bloqueioId) => ObterProduto(produtoId).ObterBloqueio(bloqueioId);
 
 
-        public SituacaoProduto Consultar(string produtoId) 
-        { 
-            var prod = ObterProduto(produtoId);
-
-            return new SituacaoProduto(prod.Id, prod.Total, prod.Disponivel, prod.Reservada, prod.Bloqueada);
-
-        }
+        public SituacaoProduto Consultar(string produtoId) => ObterProduto(produtoId).ObterSituacao();
 
         private Produto ObterProduto(string produtoId) => _repositorio.Obter(produtoId) ?? throw new ProdutoNaoEncontradoException(produtoId);
     }

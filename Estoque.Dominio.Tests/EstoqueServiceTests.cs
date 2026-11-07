@@ -104,6 +104,14 @@ namespace Estoque.Dominio.Tests
             Assert.Equal(0, final.Bloqueada);
         }
 
+        [Fact]
+        public void Entrada_ConcorrenteEmProdutoNovo_NaoPerdeEntradas()
+        {
+            var servico = CriarServico();
 
+            Parallel.For(0, 1000, _ => servico.Entrada("P1", 1)); //executa o bloco 1000 vezes
+
+            Assert.Equal(1000, servico.Consultar("P1").Total);
+        }
     }
 }

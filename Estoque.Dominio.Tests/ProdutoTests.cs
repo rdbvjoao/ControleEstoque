@@ -418,5 +418,39 @@ namespace Estoque.Dominio.Tests
 
         }
 
+        [Fact]
+        public void Reservar_Concorrente_NaoReservaMaisQueODisponivel()
+        {
+            var produto = new Produto("P1");
+
+            produto.Entrada(1000);
+
+            var sucessos = 0;
+
+            var falhas = 0;
+
+            Parallel.For(0, 5000, _ => //executa o bloco 5000 vezes
+            {
+                try
+                {
+                    produto.Reservar("PED", 1);
+
+                    Interlocked.Increment(ref sucessos);
+                }
+                
+                catch (EstoqueInsuficienteException)
+                {
+                    Interlocked.Increment(ref falhas);
+                }
+            });
+
+            Assert.Equal(1000, sucessos);
+            Assert.Equal(4000, falhas);
+            Assert.Equal(0, produto.Disponivel);
+            Assert.Equal(1000, produto.Reservada);
+            Assert.Equal(1000, produto.Total);
+        }
+
+
     }
 }
