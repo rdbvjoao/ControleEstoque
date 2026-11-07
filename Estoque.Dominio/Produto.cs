@@ -19,10 +19,17 @@ namespace Estoque.Dominio
         {
             Id = id;
         }
-        public void Entrada(int quantidade) 
+
+
+        private static void ValidarQuantidade(int quantidade) 
         {
             if(quantidade <=0)
                 throw new QuantidadeInvalidaException(quantidade);
+        }
+
+        public void Entrada(int quantidade) 
+        {
+            ValidarQuantidade(quantidade);
 
             Total += quantidade;
             Disponivel += quantidade;
@@ -31,6 +38,8 @@ namespace Estoque.Dominio
 
         public void Saida(int quantidade)
         {
+            ValidarQuantidade(quantidade);
+
             if (quantidade > Disponivel)
                 throw new EstoqueInsuficienteException(quantidade, Disponivel);
 

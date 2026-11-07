@@ -66,5 +66,20 @@ namespace Estoque.Dominio.Tests
             Assert.Equal(10, produto.Total);
             Assert.Equal(10, produto.Disponivel);
         }
+
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-5)]
+        public void Saida_QuantidadeZeroOuNegativa_LancaErroEMantemEstoque(int quantidade)
+        {
+            var produto = new Produto("P1");
+            produto.Entrada(10);
+
+            Assert.Throws<QuantidadeInvalidaException>(() => produto.Saida(quantidade));
+            
+            Assert.Equal(10, produto.Total);
+            Assert.Equal(10, produto.Disponivel);
+        }
     }
 }
