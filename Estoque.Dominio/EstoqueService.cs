@@ -18,6 +18,8 @@ namespace Estoque.Dominio
 
         public void Entrada(string produtoId, int quantidade)
         {
+            Validacoes.ExigirTexto(produtoId, "produto");
+
             lock (_lockCriacao)
             {
                 var produto = _repositorio.Obter(produtoId);
@@ -59,6 +61,12 @@ namespace Estoque.Dominio
 
         public SituacaoProduto Consultar(string produtoId) => ObterProduto(produtoId).ObterSituacao();
 
-        private Produto ObterProduto(string produtoId) => _repositorio.Obter(produtoId) ?? throw new ProdutoNaoEncontradoException(produtoId);
+        private Produto ObterProduto(string produtoId)
+        {
+            Validacoes.ExigirTexto(produtoId, "produto");
+
+            return _repositorio.Obter(produtoId) ?? throw new ProdutoNaoEncontradoException(produtoId);
+        }
+
     }
 }

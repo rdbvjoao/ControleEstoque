@@ -452,5 +452,21 @@ namespace Estoque.Dominio.Tests
         }
 
 
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void Reservar_PedidoInvalido_LancaErroEMantemEstoque(string? pedidoId)
+        {
+            var produto = new Produto("P1");
+            produto.Entrada(10);
+
+            Assert.Throws<IdentificadorInvalidoException>(() => produto.Reservar(pedidoId!, 5));
+
+            Assert.Equal(10, produto.Disponivel);
+            Assert.Equal(0, produto.Reservada);
+        }
+
     }
 }

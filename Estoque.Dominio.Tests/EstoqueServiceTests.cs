@@ -113,5 +113,17 @@ namespace Estoque.Dominio.Tests
 
             Assert.Equal(1000, servico.Consultar("P1").Total);
         }
+
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void Entrada_ProdutoIdInvalido_LancaErro(string? produtoId)
+        {
+            var servico = CriarServico();
+
+            Assert.Throws<IdentificadorInvalidoException>(() => servico.Entrada(produtoId!, 10));
+        }
     }
 }

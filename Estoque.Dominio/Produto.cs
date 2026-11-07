@@ -68,6 +68,7 @@ namespace Estoque.Dominio
             { 
             
                 ValidarQuantidade(quantidade);
+                Validacoes.ExigirTexto(pedidoId, "pedido");
                 ValidarDisponivel(quantidade);
 
                 var reserva =  new Reserva(pedidoId, quantidade);
