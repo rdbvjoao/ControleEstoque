@@ -244,5 +244,81 @@ namespace Estoque.Dominio.Tests
 
         }
 
+        [Fact]
+        public void LiberarReserva_ReservaExistente_DevolveAoDisponivelEMantemOutras() 
+        {
+            var produto = new Produto("P1");
+
+            produto.Entrada(100);
+
+            var reserva1 = produto.Reservar("PED-1", 30);
+            var reserva2 = produto.Reservar("PED-2", 20);
+
+            produto.LiberarReserva(reserva1.Id);
+
+            Assert.Equal(100, produto.Total);
+            Assert.Equal(80, produto.Disponivel);
+            Assert.Equal(20, produto.Reservada);
+            Assert.Equal(0, produto.Bloqueada);
+            Assert.Same(reserva2, produto.ObterReserva(reserva2.Id));
+
+        }
+
+        [Fact]
+        public void LiberarReserva_IdInexistente_LancaErroMantemEstoque() 
+        {
+            var produto = new Produto("P1");
+            
+            produto.Entrada(100);
+
+            produto.Reservar("PED-1", 30);
+
+            Assert.Throws<ReservaNaoEncontradaException>(() => produto.LiberarReserva(Guid.NewGuid()));
+
+            Assert.Equal(70, produto.Disponivel);
+            Assert.Equal(30, produto.Reservada);
+
+        }
+
+        [Fact]
+        public void LiberarReserva_JaLiberada_LancaErroMantemEstoque()
+        {
+            var produto = new Produto("P1");
+
+            produto.Entrada(100);
+
+            var reserva = produto.Reservar("PED-1", 30);
+
+            produto.LiberarReserva(reserva.Id);
+
+            Assert.Throws<ReservaNaoEncontradaException>(() => produto.LiberarReserva(reserva.Id));
+
+            Assert.Equal(100, produto.Disponivel);
+            Assert.Equal(0, produto.Reservada);
+        }
+
+
+        [Fact]
+        public void ObterReserva_IdExistente_RetornaReserva()
+        {
+            var produto = new Produto("P1");
+
+            produto.Entrada(100);
+
+            var reserva = produto.Reservar("PED-1", 30);
+
+            var encontrada = produto.ObterReserva(reserva.Id);
+
+            Assert.Same(reserva, encontrada);
+        }
+
+        [Fact]
+        public void ObterReserva_IdInexistente_LancaErro()
+        {
+            var produto = new Produto("P1");
+
+            Assert.Throws<ReservaNaoEncontradaException>(() => produto.ObterReserva(Guid.NewGuid()));
+        }
+
     }
 }

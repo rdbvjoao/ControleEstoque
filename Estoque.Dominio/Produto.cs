@@ -72,6 +72,27 @@ namespace Estoque.Dominio
 
         }
 
+        public Reserva ObterReserva(Guid id) 
+        {
+            if(!_reservas.TryGetValue(id, out var reserva)) //procura o id no dicionário
+                throw new ReservaNaoEncontradaException(id);
+
+            return reserva;
+        }
+
+        public void LiberarReserva(Guid id) 
+        {
+            var reserva = ObterReserva(id);
+
+            _reservas.Remove(id); //removendo a reserva do dicionário
+
+            Reservada -= reserva.Quantidade;
+            Disponivel += reserva.Quantidade;
+
+        }
+
+
+
         public Bloqueio Bloquear(int quantidade)
         {
             ValidarQuantidade(quantidade);
